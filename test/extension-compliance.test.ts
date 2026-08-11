@@ -3503,7 +3503,7 @@ describe("Pi docs compliance", () => {
 			},
 		});
 		const state = createInitialState(emptyGitStatus());
-		state.contextLabel = "0.5%/200k";
+		state.contextLabel = "0.5% · 1.0k/200k";
 		state.tokenLabel = "↑1 ↓2";
 		state.costLabel = "$0.001";
 
@@ -3551,7 +3551,7 @@ describe("Pi docs compliance", () => {
 			scheduleProjectRefresh() {},
 		});
 		const builtIn = createFooter()?.render(200).join("\n") ?? "";
-		expect(builtIn).toContain("0.5%/200k (auto)");
+		expect(builtIn).toContain("0.5% · 1.0k/200k (auto)");
 		expect(builtIn).toContain("↑100 ↓20 󰆼 80.0% R1.2k W300");
 		expect(builtIn).toContain("$1.000 (sub)");
 
@@ -3566,7 +3566,7 @@ describe("Pi docs compliance", () => {
 			scheduleProjectRefresh() {},
 		});
 		const custom = createFooter()?.render(200).join("\n") ?? "";
-		expect(custom).toContain("↑100 ↓20 󰆼 80.0% R1.2k W300 $1.000 (sub) 0.5%/200k (auto)");
+		expect(custom).toContain("↑100 ↓20 󰆼 80.0% R1.2k W300 $1.000 (sub) 0.5% · 1.0k/200k (auto)");
 		expect(custom.match(/R1\.2k/g)).toHaveLength(1);
 
 		const compactConfig = {
@@ -3601,7 +3601,7 @@ describe("Pi docs compliance", () => {
 		state.modelId = "GPT-5.6 Terra";
 		state.modelName = "GPT-5.6 Terra";
 		state.providerLabel = "OpenAI";
-		state.contextLabel = "0.5%/200k";
+		state.contextLabel = "0.5% · 1.0k/200k";
 		state.tokenLabel = "↑1 ↓2";
 		state.costLabel = "$0.001";
 		const createFooter = () =>
@@ -3633,10 +3633,10 @@ describe("Pi docs compliance", () => {
 			setRequestRender() {},
 			scheduleProjectRefresh() {},
 		});
-		const reflowed = createFooter()?.render(55) ?? [];
+		const reflowed = createFooter()?.render(65) ?? [];
 		expect(reflowed).toHaveLength(2);
 		expect(reflowed.join("\n")).toContain("GPT-5.6 Terra OpenAI");
-		expect(reflowed.every((line) => visibleWidth(line) <= 55)).toBe(true);
+		expect(reflowed.every((line) => visibleWidth(line) <= 65)).toBe(true);
 
 		installFooter(ctx as never, state, () => enabled, {
 			setRequestRender() {},
@@ -3644,10 +3644,10 @@ describe("Pi docs compliance", () => {
 		});
 		state.modelLabel = "openai/gpt-5";
 		state.modelId = "openai/gpt-5";
-		expect(createFooter()?.render(200).join("\n")).toContain("openai/gpt-5 | 0.5%/200k");
+		expect(createFooter()?.render(200).join("\n")).toContain("openai/gpt-5 | 0.5% · 1.0k/200k");
 		expect(createFooter()?.render(200).join("\n")).not.toContain("openai/gpt-5 OpenAI");
 		state.providerLabel = "";
-		expect(createFooter()?.render(200).join("\n")).toContain("openai/gpt-5 | 0.5%/200k");
+		expect(createFooter()?.render(200).join("\n")).toContain("openai/gpt-5 | 0.5% · 1.0k/200k");
 
 		state.modelLabel = "custom-model";
 		state.modelId = "custom-model";
@@ -3788,7 +3788,7 @@ describe("Pi docs compliance", () => {
 			},
 		});
 		const state = createInitialState(emptyGitStatus());
-		state.contextLabel = "0.5%/200k";
+		state.contextLabel = "0.5% · 1.0k/200k";
 		state.tokenLabel = "↑1 ↓2";
 		state.costLabel = "$0.001";
 
@@ -3808,7 +3808,7 @@ describe("Pi docs compliance", () => {
 		const rendered = footer?.render(160).join("\n") ?? "";
 
 		expect(rendered.indexOf("A")).toBeLessThan(rendered.indexOf("Z"));
-		expect(rendered.indexOf("Z")).toBeLessThan(rendered.indexOf("0.5%/200k"));
+		expect(rendered.indexOf("Z")).toBeLessThan(rendered.indexOf("0.5% · 1.0k/200k"));
 		expect(rendered).toContain("↑1 ↓2");
 		expect(rendered).toContain("$0.001");
 	});
@@ -3852,7 +3852,9 @@ describe("Pi docs compliance", () => {
 			});
 			const rendered = footer?.render(160).join("\n") ?? "";
 
-			expect(rendered).toContain(["A", "B", "0.5%/200k", "tokens", "cost"].join(expectedSeparator));
+			expect(rendered).toContain(
+				["A", "B", "0.5% · 1.0k/200k", "tokens", "cost"].join(expectedSeparator),
+			);
 		},
 	);
 
@@ -3885,7 +3887,7 @@ describe("Pi docs compliance", () => {
 			getExtensionStatuses: () => new Map<string, string>(),
 		});
 
-		expect(footer?.render(120).join("\n") ?? "").toContain("0.5%/200k | tokens");
+		expect(footer?.render(120).join("\n") ?? "").toContain("0.5% · 1.0k/200k | tokens");
 	});
 
 	it("honors third-party status placements and hides off statuses", () => {
@@ -3901,7 +3903,7 @@ describe("Pi docs compliance", () => {
 			},
 		});
 		const state = createInitialState(emptyGitStatus());
-		state.contextLabel = "0.5%/200k";
+		state.contextLabel = "0.5% · 1.0k/200k";
 		state.tokenLabel = "↑1 ↓2";
 		state.costLabel = "$0.001";
 		const config = {
@@ -3956,7 +3958,7 @@ describe("Pi docs compliance", () => {
 			},
 		});
 		const state = createInitialState(emptyGitStatus());
-		state.contextLabel = "0.5%/200k";
+		state.contextLabel = "0.5% · 1.0k/200k";
 		state.tokenLabel = "↑1 ↓2";
 		state.costLabel = "$0.001";
 
@@ -3990,7 +3992,7 @@ describe("Pi docs compliance", () => {
 			},
 		});
 		const state = createInitialState(emptyGitStatus());
-		state.contextLabel = "0.5%/200k";
+		state.contextLabel = "0.5% · 1.0k/200k";
 		state.tokenLabel = "↑1 ↓2";
 		state.costLabel = "$0.001";
 
@@ -4021,7 +4023,7 @@ describe("Pi docs compliance", () => {
 			},
 		});
 		const state = createInitialState(emptyGitStatus());
-		state.contextLabel = "0.5%/200k";
+		state.contextLabel = "0.5% · 1.0k/200k";
 		state.tokenLabel = "↑1 ↓2";
 		state.costLabel = "$0.001";
 		const config = configWithExtensionStatuses({ placements: { long: "middle" } });
@@ -4039,7 +4041,7 @@ describe("Pi docs compliance", () => {
 		const lines = footer?.render(44) ?? [];
 		const rendered = lines.join("\n");
 
-		expect(rendered).toContain("0.5%/200k");
+		expect(rendered).toContain("0.5% · 1.0k/200k");
 		expect(rendered).toContain("↑1 ↓2");
 		expect(rendered).toContain("$0.001");
 		expect(lines.every((line) => visibleWidth(line) <= 44)).toBe(true);
@@ -4090,7 +4092,7 @@ describe("Pi docs compliance", () => {
 		expect(at47.join("\n")).toContain("project");
 		expect(at47.join("\n")).toContain("responsive");
 		expect(at47.join("\n")).toContain("main");
-		expect(at47.join("\n")).toContain("48.0%/200k | ↑466k ↓54k 󰆼 99.3%");
+		expect(at47.join("\n")).toContain("48.0% · 96k/200k | ↑466k ↓54k 󰆼 99.3%");
 		for (const [width, lines] of [
 			[145, at145],
 			[139, at139],
@@ -4157,7 +4159,8 @@ describe("Pi docs compliance", () => {
 		});
 
 		const rendered = footer?.render(15).join("\n") ?? "";
-		expect(rendered).toContain("48.0%/200k…");
+		expect(rendered).toContain("48.0% · 96k/");
+		expect(rendered).toContain("…");
 		expect(rendered).not.toContain("↑466k");
 		expect(rendered).not.toContain("|");
 	});
@@ -4253,7 +4256,7 @@ describe("Pi docs compliance", () => {
 		});
 		const state = createInitialState(emptyGitStatus());
 		state.branch = "main";
-		state.contextLabel = "0.5%/200k";
+		state.contextLabel = "0.5% · 1.0k/200k";
 		state.tokenLabel = "↑1 ↓2";
 		state.costLabel = "$0.001";
 		const config: PolishedTuiConfig = {
@@ -4315,7 +4318,7 @@ describe("Pi docs compliance", () => {
 				version: "v22",
 			};
 			state.packageVersion = enabled ? { ecosystem: "nodejs", version: "1.2.3" } : undefined;
-			state.contextLabel = "0.5%/200k";
+			state.contextLabel = "0.5% · 1.0k/200k";
 			state.tokenLabel = "↑1 ↓2";
 			state.costLabel = "$0.001";
 			const config: PolishedTuiConfig = {
@@ -4360,7 +4363,7 @@ describe("Pi docs compliance", () => {
 		});
 		const state = createInitialState(emptyGitStatus());
 		state.packageVersion = { ecosystem: "nodejs", version: "1.2.3" };
-		state.contextLabel = "0.5%/200k";
+		state.contextLabel = "0.5% · 1.0k/200k";
 		state.tokenLabel = "↑1 ↓2";
 		state.costLabel = "$0.001";
 		const config: PolishedTuiConfig = {
@@ -4397,7 +4400,7 @@ describe("Pi docs compliance", () => {
 			const state = createInitialState(emptyGitStatus());
 			state.branch = detached ? undefined : "main";
 			state.commit = { oid: OID, detached, tag: null };
-			state.contextLabel = "0.5%/200k";
+			state.contextLabel = "0.5% · 1.0k/200k";
 			state.tokenLabel = "↑1 ↓2";
 			state.costLabel = "$0";
 			const config: PolishedTuiConfig = {
@@ -4441,7 +4444,7 @@ describe("Pi docs compliance", () => {
 		const renderFor = (added: number, deleted: number) => {
 			const state = createInitialState(emptyGitStatus());
 			state.metrics = { added, deleted };
-			state.contextLabel = "0.5%/200k";
+			state.contextLabel = "0.5% · 1.0k/200k";
 			state.tokenLabel = "↑1 ↓2";
 			state.costLabel = "$0";
 			const config: PolishedTuiConfig = {

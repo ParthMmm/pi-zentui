@@ -35,6 +35,7 @@ import {
 	formatRuntimeSegment,
 	formatTimeLabel,
 	formatUsernameHostLabel,
+	interpolateHexStyle,
 } from "./format";
 import { resolveRuntimeSymbol } from "./icons";
 import type { LiveContextOverride } from "./live-context";
@@ -287,25 +288,38 @@ export function installFooter(
 				const contextWindow = ctx.model?.contextWindow ?? contextUsage?.contextWindow;
 				const useLiveContext =
 					liveContext !== undefined && contextWindow !== undefined && contextWindow > 0;
+				const contextTokens = useLiveContext ? liveContext.tokens : contextUsage?.tokens;
 				const contextPercent = useLiveContext
 					? (liveContext.tokens / contextWindow) * 100
 					: contextUsage?.percent;
 				const contextLabel = buildContextDisplayLabel({
 					percent: contextPercent,
+					tokens: contextTokens,
 					contextWindow,
 					style: config.components.footer.styles.starship.contextStyle,
 					asciiGauge: iconMode === "ascii",
 				});
-				const tier = contextColorTier(
-					contextPercent,
-					config.components.footer.styles.starship.contextThresholds,
-				);
+				const contextThresholds = config.components.footer.styles.starship.contextThresholds;
+				const tier = contextColorTier(contextPercent, contextThresholds);
+				const gradientColor =
+					contextPercent !== null &&
+					contextPercent !== undefined &&
+					Number.isFinite(contextPercent) &&
+					contextPercent >= contextThresholds.warning
+						? interpolateHexStyle(
+								config.colors.contextWarning,
+								config.colors.contextError,
+								(contextPercent - contextThresholds.warning) /
+									Math.max(1, contextThresholds.error - contextThresholds.warning),
+							)
+						: undefined;
 				const contextColor =
-					tier === "error"
+					gradientColor ??
+					(tier === "error"
 						? config.colors.contextError
 						: tier === "warning"
 							? config.colors.contextWarning
-							: config.colors.contextNormal;
+							: config.colors.contextNormal);
 				const cacheReadLabel = state.cacheReadLabel
 					? renderStyleForSource(theme, colorSource, config.colors.tokens, state.cacheReadLabel)
 					: "";

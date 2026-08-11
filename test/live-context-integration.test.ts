@@ -218,12 +218,12 @@ describe("live streaming context event integration", () => {
 		expect(harness.requestRender).not.toHaveBeenCalled();
 		vi.advanceTimersByTime(1);
 		expect(harness.requestRender).toHaveBeenCalledTimes(1);
-		expect(rendered(footer)).toContain("11.0%/10k");
+		expect(rendered(footer)).toContain("11.0% · 1.1k/10k");
 		expect(rendered(footer)).toContain("↑5 ↓6");
 		expect(rendered(footer)).toContain("$0.123");
 
 		await emit(handlers, "message_end", harness.ctx, { message: assistant(1_100) });
-		expect(rendered(footer)).toContain("11.0%/10k");
+		expect(rendered(footer)).toContain("11.0% · 1.1k/10k");
 		expect(rendered(footer)).toContain("↑5 ↓6");
 		expect(rendered(footer)).toContain("$0.123");
 
@@ -231,7 +231,7 @@ describe("live streaming context event integration", () => {
 		harness.entries.push(persistedEntry("new", 7, 8, 0.2));
 		await emit(handlers, "agent_end", harness.ctx);
 		const finalized = rendered(footer);
-		expect(finalized).toContain("12.0%/10k");
+		expect(finalized).toContain("12.0% · 1.2k/10k");
 		expect(finalized).toContain("↑12 ↓14");
 		expect(finalized).toContain("$0.323");
 
@@ -249,14 +249,14 @@ describe("live streaming context event integration", () => {
 
 		await emit(handlers, "message_update", harness.ctx, { message: assistant(1_100) });
 		vi.advanceTimersByTime(250);
-		expect(rendered(footer)).toContain("11.0%/10k");
+		expect(rendered(footer)).toContain("11.0% · 1.1k/10k");
 
 		await emit(handlers, "agent_start", harness.ctx);
 		harness.requestRender.mockClear();
 		await emit(handlers, "message_update", harness.ctx, { message: assistant(0) });
 		vi.advanceTimersByTime(250);
 		expect(harness.requestRender).not.toHaveBeenCalled();
-		expect(rendered(footer)).toContain("10.0%/10k");
+		expect(rendered(footer)).toContain("10.0% · 1.0k/10k");
 
 		footer.dispose?.();
 		await emit(handlers, "session_shutdown", harness.ctx);
@@ -272,37 +272,39 @@ describe("live streaming context event integration", () => {
 		const seedLive = async (tokens = 1_100) => {
 			await emit(handlers, "message_update", harness.ctx, { message: assistant(tokens) });
 			vi.advanceTimersByTime(250);
-			expect(rendered(footer)).toContain(`${(tokens / 100).toFixed(1)}%/10k`);
+			expect(rendered(footer)).toContain(
+				`${(tokens / 100).toFixed(1)}% · ${(tokens / 1000).toFixed(1)}k/10k`,
+			);
 		};
 
 		await seedLive();
 		await emit(handlers, "agent_start", harness.ctx);
-		expect(rendered(footer)).toContain("10.0%/10k");
+		expect(rendered(footer)).toContain("10.0% · 1.0k/10k");
 
 		await seedLive();
 		await emit(handlers, "model_select", harness.ctx);
-		expect(rendered(footer)).toContain("10.0%/10k");
+		expect(rendered(footer)).toContain("10.0% · 1.0k/10k");
 
 		await seedLive();
 		await emit(handlers, "tool_execution_start", harness.ctx);
-		expect(rendered(footer)).toContain("10.0%/10k");
+		expect(rendered(footer)).toContain("10.0% · 1.0k/10k");
 
 		await seedLive();
 		await emit(handlers, "session_tree", harness.ctx);
-		expect(rendered(footer)).toContain("10.0%/10k");
+		expect(rendered(footer)).toContain("10.0% · 1.0k/10k");
 
 		await seedLive();
 		await emit(handlers, "message_end", harness.ctx, { message: assistant(1_100, "error") });
-		expect(rendered(footer)).toContain("10.0%/10k");
+		expect(rendered(footer)).toContain("10.0% · 1.0k/10k");
 
 		await seedLive();
 		await emit(handlers, "message_end", harness.ctx, { message: assistant(1_100, "aborted") });
-		expect(rendered(footer)).toContain("10.0%/10k");
+		expect(rendered(footer)).toContain("10.0% · 1.0k/10k");
 
 		await seedLive();
 		harness.state.contextUsage = null;
 		await emit(handlers, "session_compact", harness.ctx);
-		expect(rendered(footer)).toContain("?/10k");
+		expect(rendered(footer)).toContain("? · ?/10k");
 		await seedLive(1_500);
 
 		harness.state.contextUsage = { tokens: 1_000, contextWindow: 10_000, percent: 10 };
@@ -312,6 +314,6 @@ describe("live streaming context event integration", () => {
 		await emit(handlers, "session_shutdown", harness.ctx);
 		vi.advanceTimersByTime(250);
 		expect(harness.requestRender).not.toHaveBeenCalled();
-		expect(rendered(footer)).toContain("10.0%/10k");
+		expect(rendered(footer)).toContain("10.0% · 1.0k/10k");
 	});
 });

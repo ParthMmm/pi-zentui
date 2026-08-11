@@ -435,13 +435,18 @@ it.each([
 		} as never);
 		expect(footer).toBeDefined();
 		try {
-			for (const next of [10, null, 0]) {
+			for (const [next, contextLabel] of [
+				[10, "10.0% · 1.0k/10k"],
+				[null, "? · ?/10k"],
+				[0, "0.0% · 0/10k"],
+			] as const) {
 				percent = next;
 				getContextUsage.mockClear();
 				getConfig.mockClear();
 				const text = plain(footer?.render(width).join("\n") ?? "");
 				expect(text).not.toContain("5h");
-				expect(text).toContain(next === null ? "?/10k" : `${next.toFixed(1)}%/10k`);
+				// Narrow widths truncate the context segment, so compare only what fits.
+				expect(text).toContain(contextLabel.slice(0, Math.max(0, width - 2)));
 				expect(getConfig).toHaveBeenCalledTimes(2);
 				expect(getContextUsage).toHaveBeenCalledTimes(1);
 			}

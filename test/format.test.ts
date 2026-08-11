@@ -19,6 +19,7 @@ import {
 	formatOsLabel,
 	formatPackageVersionSegment,
 	getUsageTotals,
+	interpolateHexStyle,
 	invalidateUsageTotalsCache,
 	resolveContextUsage,
 } from "../extensions/zentui/format";
@@ -539,24 +540,37 @@ describe("context helpers", () => {
 		expect(buildContextGauge(0, 10)).toHaveLength(10);
 		expect(buildContextGauge(100, 10)).toHaveLength(10);
 		expect(buildContextGauge(50, 10, true)).toBe("#####-----");
-		expect(buildContextDisplayLabel({ percent: 42, contextWindow: 128_000, style: "text" })).toBe(
-			"42.0%/128k",
-		);
+		expect(
+			buildContextDisplayLabel({
+				percent: 42,
+				tokens: 53_760,
+				contextWindow: 128_000,
+				style: "text",
+			}),
+		).toBe("42.0% · 54k/128k");
 		expect(
 			buildContextDisplayLabel({ percent: 42, contextWindow: 128_000, style: "gauge" }),
 		).toMatch(/^\[.{10}\]$/);
 		expect(
 			buildContextDisplayLabel({
 				percent: 42,
+				tokens: 53_760,
 				contextWindow: 128_000,
 				style: "text+gauge",
 			}),
-		).toMatch(/^\[.{10}\] 42\.0%\/128k$/);
-		expect(buildContextDisplayLabel({ percent: null, contextWindow: 128_000 })).toBe("?/128k");
+		).toMatch(/^\[.{10}\] 42\.0% · 54k\/128k$/);
+		expect(buildContextDisplayLabel({ percent: null, contextWindow: 128_000 })).toBe("? · ?/128k");
 		expect(buildContextDisplayLabel({ percent: Number.NaN, contextWindow: 128_000 })).toBe(
-			"?/128k",
+			"? · ?/128k",
 		);
 		expect(buildContextDisplayLabel({ percent: null, contextWindow: undefined })).toBe("--");
+	});
+
+	it("interpolates context pressure colors while preserving modifiers", () => {
+		expect(interpolateHexStyle("bold #fafc35", "bold #ff2e18", 0)).toBe("bold #fafc35");
+		expect(interpolateHexStyle("bold #fafc35", "bold #ff2e18", 1)).toBe("bold #ff2e18");
+		expect(interpolateHexStyle("bold #fafc35", "bold #ff2e18", 0.5)).toBe("bold #fd9527");
+		expect(interpolateHexStyle("warning", "error", 0.5)).toBeUndefined();
 	});
 });
 
@@ -876,6 +890,7 @@ describe("resolveContextUsage snapshot", () => {
 		});
 		const ctx = { model: { contextWindow: 10_000 }, getContextUsage };
 		expect(resolveContextUsage(ctx as never, { tokens })).toEqual({
+			tokens,
 			percent: tokens / 100,
 			contextWindow: 10_000,
 		});
@@ -889,9 +904,17 @@ describe("resolveContextUsage snapshot", () => {
 			.mockReturnValueOnce({ tokens: 0, percent: 0, contextWindow: 20_000 })
 			.mockReturnValueOnce(undefined);
 		const ctx = { model: undefined, getContextUsage };
-		expect(resolveContextUsage(ctx)).toEqual({ percent: undefined, contextWindow: 10_000 });
-		expect(resolveContextUsage(ctx)).toEqual({ percent: 0, contextWindow: 20_000 });
-		expect(resolveContextUsage(ctx)).toEqual({ percent: undefined, contextWindow: undefined });
+		expect(resolveContextUsage(ctx)).toEqual({
+			tokens: undefined,
+			percent: undefined,
+			contextWindow: 10_000,
+		});
+		expect(resolveContextUsage(ctx)).toEqual({ tokens: 0, percent: 0, contextWindow: 20_000 });
+		expect(resolveContextUsage(ctx)).toEqual({
+			tokens: undefined,
+			percent: undefined,
+			contextWindow: undefined,
+		});
 		expect(getContextUsage).toHaveBeenCalledTimes(3);
 	});
 
@@ -899,12 +922,14 @@ describe("resolveContextUsage snapshot", () => {
 		const getContextUsage = vi.fn(() => ({ tokens: null, percent: null, contextWindow: 10_000 }));
 		const ctx = { model: { contextWindow: undefined as number | undefined }, getContextUsage };
 		expect(resolveContextUsage(ctx as never, { tokens: 1_100 })).toEqual({
+			tokens: 1_100,
 			percent: 11,
 			contextWindow: 10_000,
 		});
 		expect(getContextUsage).toHaveBeenCalledTimes(1);
 		ctx.model.contextWindow = 20_000;
 		expect(resolveContextUsage(ctx as never, { tokens: 1_100 })).toEqual({
+			tokens: 1_100,
 			percent: 5.5,
 			contextWindow: 20_000,
 		});

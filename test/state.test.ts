@@ -90,7 +90,7 @@ it("retains default compatibility context but lets render-time consumers skip it
 		getContextUsage: vi.fn(() => ({ tokens: 0, percent: 0, contextWindow: 10_000 })),
 	};
 	syncState(state, ctx, "");
-	expect(state.contextLabel).toBe("0.0%/10k");
+	expect(state.contextLabel).toBe("0.0% · 0/10k");
 	expect(ctx.getContextUsage).toHaveBeenCalledTimes(1);
 	syncState(state, ctx, "", {}, { includeContextLabel: false });
 	expect(state.contextLabel).toBe("--");

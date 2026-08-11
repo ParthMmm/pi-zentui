@@ -45,6 +45,7 @@ import {
 	formatRuntimeSegment,
 	formatTimeLabel,
 	formatUsernameHostLabel,
+	interpolateHexStyle,
 	resolveContextUsage,
 } from "./format.ts";
 import { type HostTemplateValues, isHostTemplateVariable } from "./host-template-values.ts";
@@ -396,24 +397,36 @@ export function installFooter(
 					contextSnapshot ??
 					(needsContext
 						? resolveContextUsage(ctx, hooks.getLiveContext?.())
-						: { percent: undefined, contextWindow: undefined });
-				const { percent: contextPercent, contextWindow } = context;
+						: { tokens: undefined, percent: undefined, contextWindow: undefined });
+				const { percent: contextPercent, tokens: contextTokens, contextWindow } = context;
 				const contextLabel = buildContextDisplayLabel({
 					percent: contextPercent,
+					tokens: contextTokens,
 					contextWindow,
 					style: config.components.footer.styles.starship.contextStyle,
 					asciiGauge: iconMode === "ascii",
 				});
-				const tier = contextColorTier(
-					contextPercent,
-					config.components.footer.styles.starship.contextThresholds,
-				);
+				const contextThresholds = config.components.footer.styles.starship.contextThresholds;
+				const tier = contextColorTier(contextPercent, contextThresholds);
+				const gradientColor =
+					contextPercent !== null &&
+					contextPercent !== undefined &&
+					Number.isFinite(contextPercent) &&
+					contextPercent >= contextThresholds.warning
+						? interpolateHexStyle(
+								componentColor(config, "footer", "contextWarning"),
+								componentColor(config, "footer", "contextError"),
+								(contextPercent - contextThresholds.warning) /
+									Math.max(1, contextThresholds.error - contextThresholds.warning),
+							)
+						: undefined;
 				const contextColor =
-					tier === "error"
+					gradientColor ??
+					(tier === "error"
 						? componentColor(config, "footer", "contextError")
 						: tier === "warning"
 							? componentColor(config, "footer", "contextWarning")
-							: componentColor(config, "footer", "contextNormal");
+							: componentColor(config, "footer", "contextNormal"));
 				const cacheReadLabel = state.cacheReadLabel
 					? renderStyleForSource(
 							theme,

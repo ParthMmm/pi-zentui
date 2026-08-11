@@ -19,6 +19,7 @@ import {
 	formatOsLabel,
 	formatPackageVersionSegment,
 	getUsageTotals,
+	interpolateHexStyle,
 	invalidateUsageTotalsCache,
 } from "../extensions/zentui/format";
 import {
@@ -534,24 +535,37 @@ describe("context helpers", () => {
 		expect(buildContextGauge(0, 10)).toHaveLength(10);
 		expect(buildContextGauge(100, 10)).toHaveLength(10);
 		expect(buildContextGauge(50, 10, true)).toBe("#####-----");
-		expect(buildContextDisplayLabel({ percent: 42, contextWindow: 128_000, style: "text" })).toBe(
-			"42.0%/128k",
-		);
+		expect(
+			buildContextDisplayLabel({
+				percent: 42,
+				tokens: 53_760,
+				contextWindow: 128_000,
+				style: "text",
+			}),
+		).toBe("42.0% · 54k/128k");
 		expect(
 			buildContextDisplayLabel({ percent: 42, contextWindow: 128_000, style: "gauge" }),
 		).toMatch(/^\[.{10}\]$/);
 		expect(
 			buildContextDisplayLabel({
 				percent: 42,
+				tokens: 53_760,
 				contextWindow: 128_000,
 				style: "text+gauge",
 			}),
-		).toMatch(/^\[.{10}\] 42\.0%\/128k$/);
-		expect(buildContextDisplayLabel({ percent: null, contextWindow: 128_000 })).toBe("?/128k");
+		).toMatch(/^\[.{10}\] 42\.0% · 54k\/128k$/);
+		expect(buildContextDisplayLabel({ percent: null, contextWindow: 128_000 })).toBe("? · ?/128k");
 		expect(buildContextDisplayLabel({ percent: Number.NaN, contextWindow: 128_000 })).toBe(
-			"?/128k",
+			"? · ?/128k",
 		);
 		expect(buildContextDisplayLabel({ percent: null, contextWindow: undefined })).toBe("--");
+	});
+
+	it("interpolates context pressure colors while preserving modifiers", () => {
+		expect(interpolateHexStyle("bold #fafc35", "bold #ff2e18", 0)).toBe("bold #fafc35");
+		expect(interpolateHexStyle("bold #fafc35", "bold #ff2e18", 1)).toBe("bold #ff2e18");
+		expect(interpolateHexStyle("bold #fafc35", "bold #ff2e18", 0.5)).toBe("bold #fd9527");
+		expect(interpolateHexStyle("warning", "error", 0.5)).toBeUndefined();
 	});
 });
 

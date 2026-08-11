@@ -338,6 +338,29 @@ export function contextColorTier(
 	return "normal";
 }
 
+export function interpolateHexStyle(
+	startStyle: ColorSpec,
+	endStyle: ColorSpec,
+	progress: number,
+): ColorSpec | undefined {
+	const startMatch = startStyle.match(/#([0-9a-f]{6})\b/i);
+	const endMatch = endStyle.match(/#([0-9a-f]{6})\b/i);
+	if (!startMatch || !endMatch) return undefined;
+
+	const clamped = Math.max(0, Math.min(1, progress));
+	const channels = [0, 2, 4].map((offset) => {
+		const start = Number.parseInt(startMatch[1].slice(offset, offset + 2), 16);
+		const end = Number.parseInt(endMatch[1].slice(offset, offset + 2), 16);
+		return Math.round(start + (end - start) * clamped)
+			.toString(16)
+			.padStart(2, "0");
+	});
+	const modifiers = startStyle
+		.split(/\s+/)
+		.filter((token) => token && !/^#[0-9a-f]{6}$/i.test(token));
+	return [...modifiers, `#${channels.join("")}`].join(" ");
+}
+
 export function buildContextGauge(percent: number, width = 10, ascii = false): string {
 	const clamped = Math.max(0, Math.min(100, percent));
 	const filled = Math.round((clamped / 100) * width);
@@ -349,25 +372,30 @@ export function buildContextGauge(percent: number, width = 10, ascii = false): s
 export function formatContextPercentLabel(
 	percent: number | null | undefined,
 	contextWindow: number | undefined,
+	tokens?: number | null,
+	showTokens = false,
 ): string {
 	if (!contextWindow || contextWindow <= 0) return "--";
 	const percentLabel =
 		percent === null || percent === undefined || !Number.isFinite(percent)
 			? "?"
 			: `${Math.max(0, Math.min(999, percent)).toFixed(1)}%`;
-	return `${percentLabel}/${formatCount(contextWindow)}`;
+	if (!showTokens) return `${percentLabel}/${formatCount(contextWindow)}`;
+	const tokensLabel = tokens === null || tokens === undefined ? "?" : formatCount(tokens);
+	return `${percentLabel} · ${tokensLabel}/${formatCount(contextWindow)}`;
 }
 
 export function buildContextDisplayLabel(options: {
 	percent: number | null | undefined;
+	tokens?: number | null;
 	contextWindow: number | undefined;
 	style?: ContextStyle;
 	asciiGauge?: boolean;
 }): string {
-	const { percent, contextWindow, style = "text", asciiGauge = false } = options;
+	const { percent, tokens, contextWindow, style = "text", asciiGauge = false } = options;
 	if (!contextWindow || contextWindow <= 0) return "--";
 
-	const text = formatContextPercentLabel(percent, contextWindow);
+	const text = formatContextPercentLabel(percent, contextWindow, tokens, true);
 	const numericPercent =
 		percent === null || percent === undefined || !Number.isFinite(percent)
 			? 0
@@ -380,6 +408,7 @@ export function buildContextDisplayLabel(options: {
 }
 
 export type ContextUsageSnapshot = {
+	tokens: number | undefined;
 	percent: number | undefined;
 	contextWindow: number | undefined;
 };
@@ -391,6 +420,7 @@ export function resolveContextUsage(
 	const usage = ctx.getContextUsage();
 	const contextWindow = ctx.model?.contextWindow ?? usage?.contextWindow;
 	return {
+		tokens: live && contextWindow && contextWindow > 0 ? live.tokens : (usage?.tokens ?? undefined),
 		percent:
 			live && contextWindow && contextWindow > 0
 				? (live.tokens / contextWindow) * 100
@@ -400,8 +430,8 @@ export function resolveContextUsage(
 }
 
 export function buildContextLabel(ctx: ExtensionContext): string {
-	const { percent, contextWindow } = resolveContextUsage(ctx);
-	return formatContextPercentLabel(percent, contextWindow);
+	const { percent, tokens, contextWindow } = resolveContextUsage(ctx);
+	return formatContextPercentLabel(percent, contextWindow, tokens, true);
 }
 
 export function formatRuntimeSegment(

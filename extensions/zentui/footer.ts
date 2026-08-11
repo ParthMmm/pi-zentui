@@ -36,6 +36,7 @@ import {
 	formatRuntimeSegment,
 	formatTimeLabel,
 	formatUsernameHostLabel,
+	interpolateHexStyle,
 	resolveContextUsage,
 } from "./format";
 import { resolveRuntimeSymbol } from "./icons";
@@ -288,26 +289,39 @@ export function installFooter(
 							config.components.footer.styles.starship.gitBranch.maxLength,
 						)
 					: undefined;
-				const { percent: contextPercent, contextWindow } = resolveContextUsage(
-					ctx,
-					hooks.getLiveContext?.(),
-				);
+				const {
+					percent: contextPercent,
+					tokens: contextTokens,
+					contextWindow,
+				} = resolveContextUsage(ctx, hooks.getLiveContext?.());
 				const contextLabel = buildContextDisplayLabel({
 					percent: contextPercent,
+					tokens: contextTokens,
 					contextWindow,
 					style: config.components.footer.styles.starship.contextStyle,
 					asciiGauge: iconMode === "ascii",
 				});
-				const tier = contextColorTier(
-					contextPercent,
-					config.components.footer.styles.starship.contextThresholds,
-				);
+				const contextThresholds = config.components.footer.styles.starship.contextThresholds;
+				const tier = contextColorTier(contextPercent, contextThresholds);
+				const gradientColor =
+					contextPercent !== null &&
+					contextPercent !== undefined &&
+					Number.isFinite(contextPercent) &&
+					contextPercent >= contextThresholds.warning
+						? interpolateHexStyle(
+								config.colors.contextWarning,
+								config.colors.contextError,
+								(contextPercent - contextThresholds.warning) /
+									Math.max(1, contextThresholds.error - contextThresholds.warning),
+							)
+						: undefined;
 				const contextColor =
-					tier === "error"
+					gradientColor ??
+					(tier === "error"
 						? config.colors.contextError
 						: tier === "warning"
 							? config.colors.contextWarning
-							: config.colors.contextNormal;
+							: config.colors.contextNormal);
 				const cacheReadLabel = state.cacheReadLabel
 					? renderStyleForSource(theme, colorSource, config.colors.tokens, state.cacheReadLabel)
 					: "";

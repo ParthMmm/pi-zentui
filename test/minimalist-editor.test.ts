@@ -604,8 +604,8 @@ describe("minimalist editor frame", () => {
 			getExtensionStatuses: () => new Map(),
 		});
 		const footerRendered = footer?.render(80).join("\n") ?? "";
-		expect(footerRendered).toContain("\x1b[90m50.0%/100k\x1b[0m");
-		expect(footerRendered).not.toContain("\x1b[33m50.0%/100k\x1b[0m");
+		expect(footerRendered).toContain("\x1b[90m50.0% · 50k/100k\x1b[0m");
+		expect(footerRendered).not.toContain("\x1b[33m50.0% · 50k/100k\x1b[0m");
 	});
 
 	it("uses the adaptive border callback when configured", () => {

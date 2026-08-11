@@ -212,13 +212,13 @@ describe("telemetry lifecycle integration", () => {
 		capabilities.subscription = false;
 		capabilities.autoCompaction = true;
 		await emit(handlers, "tool_execution_end", harness.ctx);
-		expect(rendered(footer)).toContain("10.0%/10k (auto)");
+		expect(rendered(footer)).toContain("10.0% · 1.0k/10k (auto)");
 
 		capabilities.subscription = true;
 		capabilities.autoCompaction = true;
 		await emit(handlers, "session_info_changed", harness.ctx);
 		expect(rendered(footer)).toContain("$0.000 (sub)");
-		expect(rendered(footer)).toContain("10.0%/10k (auto)");
+		expect(rendered(footer)).toContain("10.0% · 1.0k/10k (auto)");
 
 		capabilities.throwSubscription = true;
 		capabilities.throwAutoCompaction = true;
@@ -240,7 +240,7 @@ describe("telemetry lifecycle integration", () => {
 		expect(final).toContain("↑15 ↓5");
 		expect(final).toContain("R1.2k W300");
 		expect(final).toContain("$0.000 (sub)");
-		expect(final).toContain("10.0%/10k (auto)");
+		expect(final).toContain("10.0% · 1.0k/10k (auto)");
 
 		footer.dispose?.();
 		await emit(handlers, "session_shutdown", harness.ctx);
